@@ -26,16 +26,13 @@
 const int width = MY_GAME_WIDTH;
 const int height = MY_GAME_HEIGHT;
 
-const int bob_width = 32;
-const int bob_height = 32;
-
-int bob_x = ((width / 2) - (bob_width / 2));
-int bob_y = (height - bob_height);
+Rectangle bob_rect;
+Vector2 bob_post;
 
 bool is_jumping = false;
 
 const bool IsOnGround() {
-	return (bob_y >= (height - bob_height));
+	return (bob_post.y >= (height - bob_rect.height));
 }
 
 const bool HasJumped() {
@@ -53,9 +50,14 @@ int main() {
 	InitWindow(width, height, MY_GAME_TITLE);
 	SetTargetFPS(60);
 
-	Texture2D bob = LoadTexture("./sprites/bob.png");
-	Rectangle bob_rect;
-	Vector2 bob_pos;
+	const Texture2D bob = LoadTexture("./sprites/bob.png");
+
+	bob_rect.x = (bob_rect.y = 0);
+	bob_rect.width = (bob.width / 11);
+	bob_rect.height = bob.height;
+
+	bob_post.x = ((width / 2) - (bob_rect.width / 2));
+	bob_post.y = (height - bob_rect.height);
 
 	while (!WindowShouldClose()) {
 		BeginDrawing();
@@ -79,13 +81,15 @@ int main() {
 		}
 
 		// Update position.
-		bob_y = (bob_y + bob_velocity);
+		bob_post.y = (bob_post.y + bob_velocity);
 
-		DrawRectangle(bob_x, bob_y, bob_width, bob_height, BLACK);
+		DrawTextureRec(bob, bob_rect, bob_post, WHITE);
 
 		EndDrawing();
 	}
 
+	UnloadTexture(bob);
 	CloseWindow();
+
 	return 0;
 }
