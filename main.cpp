@@ -26,16 +26,21 @@
 const int width = MY_GAME_WIDTH;
 const int height = MY_GAME_HEIGHT;
 
-const int player_width = 32;
-const int player_height = 32;
+const int bob_width = 32;
+const int bob_height = 32;
 
-int player_x = ((width / 2) - (player_width / 2));
-int player_y = (height - player_height);
+int bob_x = ((width / 2) - (bob_width / 2));
+int bob_y = (height - bob_height);
 
-bool is_jumping;
+bool is_jumping = false;
 
-const bool IsOnGround();
-const bool HasJumped();
+const bool IsOnGround() {
+	return (bob_y >= (height - bob_height));
+}
+
+const bool HasJumped() {
+	return !is_jumping && (IsKeyPressed(KEY_SPACE));
+}
 
 int main() {
 	// Accelaration due to gravity.
@@ -43,10 +48,14 @@ int main() {
 	const int gravity = 1;
 	const int jump_velocity = 16;
 
-	int player_velocity{}; // Declare & initialize to 0 using braced initialization.
+	int bob_velocity{}; // Declare & initialize to 0 using braced initialization.
 
 	InitWindow(width, height, MY_GAME_TITLE);
 	SetTargetFPS(60);
+
+	Texture2D bob = LoadTexture("./sprites/bob.png");
+	Rectangle bob_rect;
+	Vector2 bob_pos;
 
 	while (!WindowShouldClose()) {
 		BeginDrawing();
@@ -56,35 +65,27 @@ int main() {
 
 		// Is the player on the ground?
 		if (IsOnGround()) {
-			player_velocity = 0;
+			bob_velocity = 0;
 			is_jumping = false;
 		}
 		else {
 			// Player is in the air; apply gravity.
-			player_velocity = (player_velocity + gravity);
+			bob_velocity = (bob_velocity + gravity);
 			is_jumping = true;
 		}
 
 		if (HasJumped()) {
-			player_velocity = (player_velocity - jump_velocity);
+			bob_velocity = (bob_velocity - jump_velocity);
 		}
 
 		// Update position.
-		player_y = (player_y + player_velocity);
+		bob_y = (bob_y + bob_velocity);
 
-		DrawRectangle(player_x, player_y, player_width, player_height, BLACK);
+		DrawRectangle(bob_x, bob_y, bob_width, bob_height, BLACK);
 
 		EndDrawing();
 	}
 
 	CloseWindow();
 	return 0;
-}
-
-const bool IsOnGround() {
-	return (player_y >= (height - player_height));
-}
-
-const bool HasJumped() {
-	return !is_jumping && (IsKeyPressed(KEY_SPACE));
 }
