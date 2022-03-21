@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "raymath.h"
 
 #define MY_GAME_TITLE "Aliens!"
 #define MY_GAME_WIDTH 512
@@ -29,6 +30,8 @@ const int w_height = MY_GAME_HEIGHT;
 
 Rectangle bob_rect;
 Vector2 bob_post;
+Rectangle slime_rect;
+Vector2 slime_post;
 
 bool is_jumping = false;
 
@@ -39,10 +42,16 @@ const float DeltaTime() {
 	return GetFrameTime();
 }
 
+/**
+* @returns Is Bob on the ground?
+**/
 const bool IsOnGround() {
-	return (bob_post.y > (w_height - bob_rect.height));
+	return (bob_post.y >= (w_height - bob_rect.height));
 }
 
+/**
+* @returns Has Bob jumped?
+**/
 const bool HasJumped() {
 	return !is_jumping && (IsKeyDown(KEY_SPACE));
 }
@@ -50,18 +59,22 @@ const bool HasJumped() {
 int main() {
 	// Accelaration due to gravity.
 	// (P/S) / S == ((P)IXELS / (S)ECONDS) / (S)ECONDS
-	const int gravity = 1000;
+	const int gravity = 1'000;
 	const int jump_velocity = 600; // Pixels per second.
-	const float update_time = (1.0f / 12.0f); // Update 12 times per second.
+	const float update_time = (1.0f / 10.0f); // Update 10 times per second.
 	float running_time{};
+
 	int bob_frame{};
 	int bob_velocity{}; // Declare & initialize to 0 using braced initialization.
+	int slime_frame{};
+	int slime_velocity = -300;
 
 	InitWindow(w_width, w_height, MY_GAME_TITLE);
 	SetWindowIcon(w_icon);
 	SetTargetFPS(60);
 
 	const Texture2D bob = LoadTexture("./data/sprites/bob.png");
+	const Texture2D slime = LoadTexture("./data/sprites/slime.png");
 
 	bob_rect.x = (bob_rect.y = 0);
 	bob_rect.width = (bob.width / 11);
@@ -69,6 +82,13 @@ int main() {
 
 	bob_post.x = ((w_width / 2) - (bob_rect.width / 2));
 	bob_post.y = (w_height - bob_rect.height);
+
+	slime_rect.x = (slime_rect.y = 0);
+	slime_rect.width = (slime.width / 3);
+	slime_rect.height = slime.height;
+
+	slime_post.x = (w_width + slime_rect.width);
+	slime_post.y = (w_height - slime_rect.height);
 
 	while (!WindowShouldClose()) {
 		const float delta = DeltaTime();
@@ -82,7 +102,7 @@ int main() {
 		if (IsOnGround()) {
 			is_jumping = false;
 			bob_velocity = 0;
-			bob_post.y = (w_height - bob_rect.height); // Bounce player position to be on the ground otherwise player might end up slightly through the ground. Maybe think about clamping the player's velocity?
+			bob_post.y = (w_height - bob_rect.height); // Bounce player position to be on the ground just incase?
 		} else {
 			// Player is in the air; apply gravity.
 			is_jumping = true;
@@ -95,26 +115,42 @@ int main() {
 		}
 
 		// Update position.
-		bob_post.y = (bob_post.y + bob_velocity * delta);
+		bob_post.y = Clamp((bob_post.y + bob_velocity * delta), 0.0f, (w_height - bob_rect.height));
+		slime_post.x = (slime_post.x + slime_velocity * delta);
+		if (slime_post.x < -slime_rect.width) {
+			slime_post.x = (w_width + slime_rect.width);
+		}
 
 		// Update Bob's animation frame.
 		running_time = (running_time + delta);
 		if (running_time >= update_time) {
 			running_time = 0.0f;
+			if (!IsOnGround()) {
+				bob_frame = 5;
+			}
+
 			bob_rect.x = (bob_frame * bob_rect.width);
 			bob_frame = (bob_frame + 1);
 			if (bob_frame > 10) {
 				bob_frame = 0;
 			}
+
+			slime_rect.x = (slime_frame * slime_rect.width);
+			slime_frame = (slime_frame + 1);
+			if (slime_frame > 2) {
+				slime_frame = 0;
+			}
 		}
 
 		DrawTextureRec(bob, bob_rect, bob_post, WHITE);
+		DrawTextureRec(slime, slime_rect, slime_post, WHITE);
 
 		EndDrawing();
 	}
 
 	UnloadImage(w_icon);
 	UnloadTexture(bob);
+	UnloadTexture(slime);
 	CloseWindow();
 
 	return 0;
