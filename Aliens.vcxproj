@@ -146,7 +146,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="sprites\bob.png" />
+    <Image Include="data\images\aliens.png" />
+    <Image Include="data\sprites\bob.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -13,8 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Resource Files\sprites">
+    <Filter Include="Resource Files\data">
+      <UniqueIdentifier>{1c84ca8b-4de1-4c4d-98aa-d48ce9b40e67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\data\sprites">
       <UniqueIdentifier>{4147324f-bf55-4c8d-a590-ada34860ddaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\data\images">
+      <UniqueIdentifier>{e03f61e3-20b3-43b4-b926-f9e39067f202}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -23,8 +29,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="sprites\bob.png">
-      <Filter>Resource Files\sprites</Filter>
+    <Image Include="data\images\aliens.png">
+      <Filter>Resource Files\data\images</Filter>
+    </Image>
+    <Image Include="data\sprites\bob.png">
+      <Filter>Resource Files\data\sprites</Filter>
     </Image>
   </ItemGroup>
 </Project>

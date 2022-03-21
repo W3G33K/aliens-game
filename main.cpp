@@ -23,8 +23,9 @@
  * (F)ORCE = (M)ASS * (A)CCELARATION
  **/
 
-const int width = MY_GAME_WIDTH;
-const int height = MY_GAME_HEIGHT;
+const Image w_icon = LoadImage("./data/images/aliens.png");
+const int w_width = MY_GAME_WIDTH;
+const int w_height = MY_GAME_HEIGHT;
 
 Rectangle bob_rect;
 Vector2 bob_post;
@@ -32,7 +33,7 @@ Vector2 bob_post;
 bool is_jumping = false;
 
 const bool IsOnGround() {
-	return (bob_post.y >= (height - bob_rect.height));
+	return (bob_post.y >= (w_height - bob_rect.height));
 }
 
 const bool HasJumped() {
@@ -47,23 +48,24 @@ int main() {
 
 	int bob_velocity{}; // Declare & initialize to 0 using braced initialization.
 
-	InitWindow(width, height, MY_GAME_TITLE);
+	InitWindow(w_width, w_height, MY_GAME_TITLE);
+	SetWindowIcon(w_icon);
 	SetTargetFPS(60);
 
-	const Texture2D bob = LoadTexture("./sprites/bob.png");
+	const Texture2D bob = LoadTexture("./data/sprites/bob.png");
 
 	bob_rect.x = (bob_rect.y = 0);
 	bob_rect.width = (bob.width / 11);
 	bob_rect.height = bob.height;
 
-	bob_post.x = ((width / 2) - (bob_rect.width / 2));
-	bob_post.y = (height - bob_rect.height);
+	bob_post.x = ((w_width / 2) - (bob_rect.width / 2));
+	bob_post.y = (w_height - bob_rect.height);
 
 	while (!WindowShouldClose()) {
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
 
-		DrawText("Hello, world!", ((width / 2) - 76), ((height / 2) - 10), 24, LIGHTGRAY);
+		DrawText("Hello, world!", ((w_width / 2) - 76), ((w_height / 2) - 10), 24, LIGHTGRAY);
 
 		// Is the player on the ground?
 		if (IsOnGround()) {
@@ -88,6 +90,7 @@ int main() {
 		EndDrawing();
 	}
 
+	UnloadImage(w_icon);
 	UnloadTexture(bob);
 	CloseWindow();
 
