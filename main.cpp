@@ -1,4 +1,3 @@
-#include <iostream>
 #include "raylib.h"
 
 #define MY_GAME_TITLE "Aliens!"
@@ -45,18 +44,17 @@ const bool IsOnGround() {
 }
 
 const bool HasJumped() {
-	return !is_jumping && (IsKeyPressed(KEY_SPACE));
+	return !is_jumping && (IsKeyDown(KEY_SPACE));
 }
 
 int main() {
-	using std::cout;
-	using std::endl;
-
 	// Accelaration due to gravity.
 	// (P/S) / S == ((P)IXELS / (S)ECONDS) / (S)ECONDS
 	const int gravity = 1000;
 	const int jump_velocity = 600; // Pixels per second.
-
+	const float update_time = (1.0f / 12.0f); // Update 12 times per second.
+	float running_time{};
+	int bob_frame{};
 	int bob_velocity{}; // Declare & initialize to 0 using braced initialization.
 
 	InitWindow(w_width, w_height, MY_GAME_TITLE);
@@ -74,7 +72,6 @@ int main() {
 
 	while (!WindowShouldClose()) {
 		const float delta = DeltaTime();
-		cout << delta << endl;
 
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
@@ -83,21 +80,33 @@ int main() {
 
 		// Is the player on the ground?
 		if (IsOnGround()) {
+			is_jumping = false;
 			bob_velocity = 0;
 			bob_post.y = (w_height - bob_rect.height); // Bounce player position to be on the ground otherwise player might end up slightly through the ground. Maybe think about clamping the player's velocity?
-			is_jumping = false;
 		} else {
 			// Player is in the air; apply gravity.
-			bob_velocity = (bob_velocity + gravity * delta);
 			is_jumping = true;
+			bob_velocity = (bob_velocity + gravity * delta);
 		}
 
 		if (HasJumped()) {
+			is_jumping = true;
 			bob_velocity = (bob_velocity - jump_velocity);
 		}
 
 		// Update position.
 		bob_post.y = (bob_post.y + bob_velocity * delta);
+
+		// Update Bob's animation frame.
+		running_time = (running_time + delta);
+		if (running_time >= update_time) {
+			running_time = 0.0f;
+			bob_rect.x = (bob_frame * bob_rect.width);
+			bob_frame = (bob_frame + 1);
+			if (bob_frame > 10) {
+				bob_frame = 0;
+			}
+		}
 
 		DrawTextureRec(bob, bob_rect, bob_post, WHITE);
 
