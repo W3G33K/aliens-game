@@ -1,3 +1,4 @@
+#include <iostream>
 #include "raylib.h"
 
 #define MY_GAME_TITLE "Aliens!"
@@ -32,8 +33,15 @@ Vector2 bob_post;
 
 bool is_jumping = false;
 
+/**
+* @returns The time since last frame.
+**/
+const float DeltaTime() {
+	return GetFrameTime();
+}
+
 const bool IsOnGround() {
-	return (bob_post.y >= (w_height - bob_rect.height));
+	return (bob_post.y > (w_height - bob_rect.height));
 }
 
 const bool HasJumped() {
@@ -41,10 +49,13 @@ const bool HasJumped() {
 }
 
 int main() {
+	using std::cout;
+	using std::endl;
+
 	// Accelaration due to gravity.
-	// (P/F) / F == ((P)IXELS / (F)RAME) / (F)RAME
-	const int gravity = 1;
-	const int jump_velocity = 16;
+	// (P/S) / S == ((P)IXELS / (S)ECONDS) / (S)ECONDS
+	const int gravity = 1000;
+	const int jump_velocity = 600; // Pixels per second.
 
 	int bob_velocity{}; // Declare & initialize to 0 using braced initialization.
 
@@ -62,6 +73,9 @@ int main() {
 	bob_post.y = (w_height - bob_rect.height);
 
 	while (!WindowShouldClose()) {
+		const float delta = DeltaTime();
+		cout << delta << endl;
+
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
 
@@ -70,11 +84,11 @@ int main() {
 		// Is the player on the ground?
 		if (IsOnGround()) {
 			bob_velocity = 0;
+			bob_post.y = (w_height - bob_rect.height); // Bounce player position to be on the ground otherwise player might end up slightly through the ground. Maybe think about clamping the player's velocity?
 			is_jumping = false;
-		}
-		else {
+		} else {
 			// Player is in the air; apply gravity.
-			bob_velocity = (bob_velocity + gravity);
+			bob_velocity = (bob_velocity + gravity * delta);
 			is_jumping = true;
 		}
 
@@ -83,7 +97,7 @@ int main() {
 		}
 
 		// Update position.
-		bob_post.y = (bob_post.y + bob_velocity);
+		bob_post.y = (bob_post.y + bob_velocity * delta);
 
 		DrawTextureRec(bob, bob_rect, bob_post, WHITE);
 
