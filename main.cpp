@@ -1,3 +1,4 @@
+#include <malloc.h>
 #include "raylib.h"
 #include "raymath.h"
 
@@ -24,9 +25,12 @@
  * (F)ORCE = (M)ASS * (A)CCELARATION
  **/
 
-const Image w_icon = LoadImage("./data/images/aliens.png");
-const int w_width = MY_GAME_WIDTH;
-const int w_height = MY_GAME_HEIGHT;
+struct Window {
+	const Image icon = LoadImage("./data/images/aliens.png");
+	const int height{MY_GAME_HEIGHT};
+	const int width{MY_GAME_WIDTH};
+	char w_title[9]{MY_GAME_TITLE};
+} const window;
 
 Rectangle bob_rect;
 Vector2 bob_post;
@@ -38,7 +42,7 @@ bool is_jumping = false;
 /**
 * @returns The time since last frame.
 **/
-const float DeltaTime() {
+const inline float DeltaTime() {
 	return GetFrameTime();
 }
 
@@ -46,7 +50,7 @@ const float DeltaTime() {
 * @returns Is Bob on the ground?
 **/
 const bool IsOnGround() {
-	return (bob_post.y >= (w_height - bob_rect.height));
+	return (bob_post.y >= (window.height - bob_rect.height));
 }
 
 /**
@@ -69,8 +73,8 @@ int main() {
 	int slime_frame{};
 	int slime_velocity = -300;
 
-	InitWindow(w_width, w_height, MY_GAME_TITLE);
-	SetWindowIcon(w_icon);
+	InitWindow(window.width, window.height, window.w_title);
+	SetWindowIcon(window.icon);
 	SetTargetFPS(60);
 
 	const Texture2D bob = LoadTexture("./data/sprites/bob.png");
@@ -80,15 +84,15 @@ int main() {
 	bob_rect.width = (bob.width / 11);
 	bob_rect.height = bob.height;
 
-	bob_post.x = ((w_width / 2) - (bob_rect.width / 2));
-	bob_post.y = (w_height - bob_rect.height);
+	bob_post.x = ((window.width / 2) - (bob_rect.width / 2));
+	bob_post.y = (window.height - bob_rect.height);
 
 	slime_rect.x = (slime_rect.y = 0);
 	slime_rect.width = (slime.width / 3);
 	slime_rect.height = slime.height;
 
-	slime_post.x = (w_width + slime_rect.width);
-	slime_post.y = (w_height - slime_rect.height);
+	slime_post.x = (window.width + slime_rect.width);
+	slime_post.y = (window.height - slime_rect.height);
 
 	while (!WindowShouldClose()) {
 		const float delta = DeltaTime();
@@ -96,13 +100,13 @@ int main() {
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
 
-		DrawText("Hello, world!", ((w_width / 2) - 76), ((w_height / 2) - 10), 24, LIGHTGRAY);
+		DrawText("Hello, world!", ((window.width / 2) - 76), ((window.height / 2) - 10), 24, LIGHTGRAY);
 
 		// Is the player on the ground?
 		if (IsOnGround()) {
 			is_jumping = false;
 			bob_velocity = 0;
-			bob_post.y = (w_height - bob_rect.height); // Bounce player position to be on the ground just incase?
+			bob_post.y = (window.height - bob_rect.height); // Bounce player position to be on the ground just incase?
 		} else {
 			// Player is in the air; apply gravity.
 			is_jumping = true;
@@ -115,10 +119,10 @@ int main() {
 		}
 
 		// Update position.
-		bob_post.y = Clamp((bob_post.y + bob_velocity * delta), 0.0f, (w_height - bob_rect.height));
+		bob_post.y = Clamp((bob_post.y + bob_velocity * delta), 0.0f, (window.height - bob_rect.height));
 		slime_post.x = (slime_post.x + slime_velocity * delta);
 		if (slime_post.x < -slime_rect.width) {
-			slime_post.x = (w_width + slime_rect.width);
+			slime_post.x = (window.width + slime_rect.width);
 		}
 
 		// Update Bob's animation frame.
@@ -148,7 +152,7 @@ int main() {
 		EndDrawing();
 	}
 
-	UnloadImage(w_icon);
+	UnloadImage(window.icon);
 	UnloadTexture(bob);
 	UnloadTexture(slime);
 	CloseWindow();
