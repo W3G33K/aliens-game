@@ -25,19 +25,28 @@
  * (F)ORCE = (M)ASS * (A)CCELARATION
  **/
 
+struct Entity {
+	Texture2D sprite;
+	Rectangle bounds;
+	Vector2 position;
+	bool is_jumping;
+	int frame;
+	int x_velocity;
+	int y_velocity;
+	int jump_velocity;
+	float running_time;
+	float update_time;
+};
+
+struct Bob : Entity {};
+struct Slime : Entity {};
+
 struct Window {
 	const Image icon = LoadImage("./data/images/aliens.png");
 	const int height{MY_GAME_HEIGHT};
 	const int width{MY_GAME_WIDTH};
-	char w_title[9]{MY_GAME_TITLE};
+	const char w_title[9]{MY_GAME_TITLE};
 } const window;
-
-Rectangle bob_rect;
-Vector2 bob_post;
-Rectangle slime_rect;
-Vector2 slime_post;
-
-bool is_jumping = false;
 
 /**
 * @returns The time since last frame.
@@ -49,50 +58,52 @@ const inline float DeltaTime() {
 /**
 * @returns Is Bob on the ground?
 **/
-const bool IsOnGround() {
-	return (bob_post.y >= (window.height - bob_rect.height));
+const bool IsOnGround(Bob *bob) {
+	return (bob->position.y >= (window.height - bob->bounds.height));
 }
 
 /**
 * @returns Has Bob jumped?
 **/
-const bool HasJumped() {
-	return !is_jumping && (IsKeyDown(KEY_SPACE));
+const bool HasJumped(Bob *bob) {
+	return !bob->is_jumping && (IsKeyDown(KEY_SPACE));
 }
 
 int main() {
 	// Accelaration due to gravity.
 	// (P/S) / S == ((P)IXELS / (S)ECONDS) / (S)ECONDS
 	const int gravity = 1'000;
-	const int jump_velocity = 600; // Pixels per second.
-	const float update_time = (1.0f / 10.0f); // Update 10 times per second.
-	float running_time{};
-
-	int bob_frame{};
-	int bob_velocity{}; // Declare & initialize to 0 using braced initialization.
-	int slime_frame{};
-	int slime_velocity = -300;
 
 	InitWindow(window.width, window.height, window.w_title);
 	SetWindowIcon(window.icon);
 	SetTargetFPS(60);
 
-	const Texture2D bob = LoadTexture("./data/sprites/bob.png");
-	const Texture2D slime = LoadTexture("./data/sprites/slime.png");
+	Bob bob;
+	bob.sprite = LoadTexture("./data/sprites/bob.png");
+	bob.bounds.x = (bob.bounds.y = 0);
+	bob.bounds.width = (bob.sprite.width / 11);
+	bob.bounds.height = bob.sprite.height;
+	bob.position.x = ((window.width / 2) - (bob.bounds.width / 2));
+	bob.position.y = (window.height - bob.bounds.height);
+	bob.frame = 0;
+	bob.x_velocity = 0;
+	bob.y_velocity = 600; // Pixels per second.
 
-	bob_rect.x = (bob_rect.y = 0);
-	bob_rect.width = (bob.width / 11);
-	bob_rect.height = bob.height;
+	Slime slime;
+	slime.sprite = LoadTexture("./data/sprites/slime.png");
+	slime.bounds.x = (slime.bounds.y = 0);
+	slime.bounds.width = (slime.sprite.width / 3);
+	slime.bounds.height = slime.sprite.height;
+	slime.position.x = (window.width + slime.bounds.width);
+	slime.position.y = (window.height - slime.bounds.height);
+	slime.frame = 0;
+	slime.x_velocity = 300; // Pixels per second.
+	slime.y_velocity = 0;
 
-	bob_post.x = ((window.width / 2) - (bob_rect.width / 2));
-	bob_post.y = (window.height - bob_rect.height);
-
-	slime_rect.x = (slime_rect.y = 0);
-	slime_rect.width = (slime.width / 3);
-	slime_rect.height = slime.height;
-
-	slime_post.x = (window.width + slime_rect.width);
-	slime_post.y = (window.height - slime_rect.height);
+	bob.is_jumping = (slime.is_jumping = false);
+	bob.jump_velocity = (slime.jump_velocity = 600);
+	bob.running_time = (slime.running_time = 0.0f);
+	bob.update_time = (slime.update_time = (1.0f / 10.0f)); // Update 10 times per second.
 
 	while (!WindowShouldClose()) {
 		const float delta = DeltaTime();
@@ -103,58 +114,58 @@ int main() {
 		DrawText("Hello, world!", ((window.width / 2) - 76), ((window.height / 2) - 10), 24, LIGHTGRAY);
 
 		// Is the player on the ground?
-		if (IsOnGround()) {
-			is_jumping = false;
-			bob_velocity = 0;
-			bob_post.y = (window.height - bob_rect.height); // Bounce player position to be on the ground just incase?
+		if (IsOnGround(&bob)) {
+			bob.is_jumping = false;
+			bob.y_velocity = 0;
+			bob.position.y = (window.height - bob.bounds.height); // Bounce player position to be on the ground just incase?
 		} else {
 			// Player is in the air; apply gravity.
-			is_jumping = true;
-			bob_velocity = (bob_velocity + gravity * delta);
+			bob.is_jumping = true;
+			bob.y_velocity = (bob.y_velocity + gravity * delta);
 		}
 
-		if (HasJumped()) {
-			is_jumping = true;
-			bob_velocity = (bob_velocity - jump_velocity);
+		if (HasJumped(&bob)) {
+			bob.is_jumping = true;
+			bob.y_velocity = (bob.y_velocity - bob.jump_velocity);
 		}
 
 		// Update position.
-		bob_post.y = Clamp((bob_post.y + bob_velocity * delta), 0.0f, (window.height - bob_rect.height));
-		slime_post.x = (slime_post.x + slime_velocity * delta);
-		if (slime_post.x < -slime_rect.width) {
-			slime_post.x = (window.width + slime_rect.width);
+		bob.position.y = Clamp((bob.position.y + (bob.y_velocity * delta)), 0.0f, (window.height - bob.bounds.height));
+		slime.position.x = (slime.position.x - (slime.x_velocity * delta));
+		if (slime.position.x < -slime.bounds.width) {
+			slime.position.x = (window.width + slime.bounds.width);
 		}
 
 		// Update Bob's animation frame.
-		running_time = (running_time + delta);
-		if (running_time >= update_time) {
-			running_time = 0.0f;
-			if (!IsOnGround()) {
-				bob_frame = 5;
+		bob.running_time = (bob.running_time + delta);
+		if (bob.running_time >= bob.update_time) {
+			bob.running_time = 0.0f;
+			if (!IsOnGround(&bob)) {
+				bob.frame = 5;
 			}
 
-			bob_rect.x = (bob_frame * bob_rect.width);
-			bob_frame = (bob_frame + 1);
-			if (bob_frame > 10) {
-				bob_frame = 0;
+			bob.bounds.x = (bob.frame * bob.bounds.width);
+			bob.frame = (bob.frame + 1);
+			if (bob.frame > 10) {
+				bob.frame = 0;
 			}
 
-			slime_rect.x = (slime_frame * slime_rect.width);
-			slime_frame = (slime_frame + 1);
-			if (slime_frame > 2) {
-				slime_frame = 0;
+			slime.bounds.x = (slime.frame * slime.bounds.width);
+			slime.frame = (slime.frame + 1);
+			if (slime.frame > 2) {
+				slime.frame = 0;
 			}
 		}
 
-		DrawTextureRec(bob, bob_rect, bob_post, WHITE);
-		DrawTextureRec(slime, slime_rect, slime_post, WHITE);
+		DrawTextureRec(bob.sprite, bob.bounds, bob.position, WHITE);
+		DrawTextureRec(slime.sprite, slime.bounds, slime.position, WHITE);
 
 		EndDrawing();
 	}
 
 	UnloadImage(window.icon);
-	UnloadTexture(bob);
-	UnloadTexture(slime);
+	UnloadTexture(bob.sprite);
+	UnloadTexture(slime.sprite);
 	CloseWindow();
 
 	return 0;
