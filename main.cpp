@@ -1,4 +1,5 @@
-#include <malloc.h>
+#include <stdlib.h>
+#include <time.h>
 #include "raylib.h"
 #include "raymath.h"
 
@@ -31,6 +32,8 @@ struct Entity {
 	Vector2 position;
 	bool is_jumping;
 	int frame;
+	int jump_frame;
+	int total_frames;
 	int x_velocity;
 	int y_velocity;
 	int jump_velocity;
@@ -66,10 +69,28 @@ const bool IsOnGround(Bob *bob) {
 * @returns Has Bob jumped?
 **/
 const bool HasJumped(Bob *bob) {
-	return !bob->is_jumping && (IsKeyDown(KEY_SPACE));
+	return (!bob->is_jumping && (IsKeyDown(KEY_SPACE)));
+}
+
+const void UpdateAnimation(Entity *entity) {
+	entity->running_time = (entity->running_time + DeltaTime());
+	if (entity->running_time >= entity->update_time) {
+		entity->running_time = 0.0f;
+		if (entity->is_jumping) {
+			entity->frame = entity->jump_frame;
+		}
+
+		entity->bounds.x = (entity->frame * entity->bounds.width);
+		entity->frame = (entity->frame + 1);
+		if (entity->frame > (entity->total_frames - 1)) {
+			entity->frame = 0;
+		}
+	}
 }
 
 int main() {
+	srand(time(NULL));
+
 	// Accelaration due to gravity.
 	// (P/S) / S == ((P)IXELS / (S)ECONDS) / (S)ECONDS
 	const int gravity = 1'000;
@@ -85,9 +106,11 @@ int main() {
 	bob.bounds.height = bob.sprite.height;
 	bob.position.x = ((window.width / 2) - (bob.bounds.width / 2));
 	bob.position.y = (window.height - bob.bounds.height);
-	bob.frame = 0;
+	bob.jump_frame = 5;
+	bob.total_frames = 11;
 	bob.x_velocity = 0;
 	bob.y_velocity = 600; // Pixels per second.
+	bob.update_time = (1.0f / 12.0f); // Update 12 times per second.
 
 	Slime slime;
 	slime.sprite = LoadTexture("./data/sprites/slime.png");
@@ -96,14 +119,16 @@ int main() {
 	slime.bounds.height = slime.sprite.height;
 	slime.position.x = (window.width + slime.bounds.width);
 	slime.position.y = (window.height - slime.bounds.height);
-	slime.frame = 0;
+	slime.jump_frame = 1;
+	slime.total_frames = 3;
 	slime.x_velocity = 300; // Pixels per second.
 	slime.y_velocity = 0;
+	slime.update_time = (1.0f / 4.0f); // Update 4 times per second.
 
+	bob.frame = (slime.frame = 0);
 	bob.is_jumping = (slime.is_jumping = false);
 	bob.jump_velocity = (slime.jump_velocity = 600);
 	bob.running_time = (slime.running_time = 0.0f);
-	bob.update_time = (slime.update_time = (1.0f / 10.0f)); // Update 10 times per second.
 
 	while (!WindowShouldClose()) {
 		const float delta = DeltaTime();
@@ -136,26 +161,9 @@ int main() {
 			slime.position.x = (window.width + slime.bounds.width);
 		}
 
-		// Update Bob's animation frame.
-		bob.running_time = (bob.running_time + delta);
-		if (bob.running_time >= bob.update_time) {
-			bob.running_time = 0.0f;
-			if (!IsOnGround(&bob)) {
-				bob.frame = 5;
-			}
-
-			bob.bounds.x = (bob.frame * bob.bounds.width);
-			bob.frame = (bob.frame + 1);
-			if (bob.frame > 10) {
-				bob.frame = 0;
-			}
-
-			slime.bounds.x = (slime.frame * slime.bounds.width);
-			slime.frame = (slime.frame + 1);
-			if (slime.frame > 2) {
-				slime.frame = 0;
-			}
-		}
+		// Update animation frames.
+		UpdateAnimation(&bob);
+		UpdateAnimation(&slime);
 
 		DrawTextureRec(bob.sprite, bob.bounds, bob.position, WHITE);
 		DrawTextureRec(slime.sprite, slime.bounds, slime.position, WHITE);
