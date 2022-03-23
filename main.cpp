@@ -3,9 +3,10 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#define MY_GAME_TITLE "Aliens!"
-#define MY_GAME_WIDTH 512
-#define MY_GAME_HEIGHT 380
+#include "GameWindow.h"
+#include "Entity.h"
+#include "Bob.h"
+#include "Slime.h"
 
 /**
  * Velocity finds speed of an object by its distance over time.
@@ -25,31 +26,6 @@
  * (A)CCELARATION = (㎧)/s
  * (F)ORCE = (M)ASS * (A)CCELARATION
  **/
-
-struct Entity {
-	Texture2D sprite;
-	Rectangle bounds;
-	Vector2 position;
-	bool is_jumping;
-	int frame;
-	int jump_frame;
-	int total_frames;
-	int x_velocity;
-	int y_velocity;
-	int jump_velocity;
-	float running_time;
-	float update_time;
-};
-
-struct Bob : Entity {};
-struct Slime : Entity {};
-
-struct Window {
-	const Image icon = LoadImage("./data/images/aliens.png");
-	const int height{MY_GAME_HEIGHT};
-	const int width{MY_GAME_WIDTH};
-	const char w_title[9]{MY_GAME_TITLE};
-} const window;
 
 /**
 * @returns The time since last frame.
@@ -166,7 +142,7 @@ int main() {
 		UpdateAnimation(&slime);
 
 		DrawTextureRec(bob.sprite, bob.bounds, bob.position, WHITE);
-		DrawTextureRec(slime.sprite, slime.bounds, slime.position, WHITE);
+		DrawTextureRec(slime.sprite, slime.bounds, slime.position, GREEN);
 
 		EndDrawing();
 	}

@@ -162,7 +162,11 @@
     <Image Include="icon2.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bob.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="GameWindow.h" />
+    <ClInclude Include="Slime.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Aliens.rc" />
